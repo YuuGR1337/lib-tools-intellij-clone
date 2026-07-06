@@ -1,0 +1,352 @@
+# .stratify.yml - Stratify Automation Configuration
+# This file configures how Stratify extracts project management metadata from GitHub labels
+# Place this file in the root of your repository on the default branch
+
+# ============================================================================
+# CATEGORY - Type Labels → Board Categories
+# ============================================================================
+# Maps type labels to board category columns. Determines which column an
+# issue appears in on the Stratify board. Category names can contain spaces
+# and special characters. Only one type label should be applied per issue.
+category:
+  labels:
+    "bug": "Bugs"
+    "documentation": "Documentation"
+    "technical debt": "Technical Debt"
+
+    # Component-based categories (if using component labels)
+    "component:backend": "Backend"
+    "component:frontend": "Frontend"
+    "component:database": "Database"
+    "component:automation": "Automation"
+    "component:security": "Security"
+    "component:infrastructure": "Infrastructure"
+
+# ============================================================================
+# PROGRESS - Status Labels → Percent Complete
+# ============================================================================
+# Maps status labels to completion percentages (0-100%). Tracks work progress
+# for executive reporting and trend analysis. If multiple status labels exist,
+# the highest percentage wins. Closed issues automatically get 100%.
+progress:
+  states:    
+    "in progress": 25
+    "almost done": 75        
+    "code complete": 90
+    deployed: 95
+
+# ============================================================================
+# DEPENDENCIES - Dependency Keywords
+# ============================================================================
+# Defines phrases that Stratify looks for in issue bodies to detect
+# dependencies. Supports same-repo (#123) and cross-repo (owner/repo#123)
+# references. Used for building dependency graphs, risk assessment, and
+# critical path analysis.
+dependencies:
+  keywords:
+    # "This issue depends on / is blocked by" keywords
+    depends:
+      - "depends on"
+      - "blocked by"
+      - "requires"
+      - "needs"
+      - "waiting for"
+      - "waiting on"
+      - "prerequisite"
+      - "prerequisite:"
+      - "dependency:"
+      - "dependency on"
+      - "dependent on"
+      - "child of"
+      - "subtask of"
+      - "related to"
+      - "follows"
+      - "after"
+      - "must wait for"
+      - "cannot start until"
+      - "blocked until"
+      - "pending"
+      
+    # "This issue blocks / is required by" keywords
+    blocks:
+      - "blocks"
+      - "blocking"
+      - "required by"
+      - "needed by"
+      - "parent of"
+      - "parent issue"
+      - "epic for"
+      - "enables"
+      - "unblocks"
+      - "prerequisite for"
+      - "must complete before"
+      - "required for"
+      - "dependency for"
+
+# ============================================================================
+# RELEASES - Release Schedule Configuration
+# ============================================================================
+releases:
+  # Define release prototypes/templates
+  prototypes:
+    - name: "Liberty Release"
+      product: "Open Liberty"
+      
+      # Naming configuration
+      naming:
+        strategy: "semantic_version"
+        template: "{major}.{minor}.{patch}.{increment}"
+        increment_step: 1
+        # Note: base_version and start_increment are set in schedules
+      
+      # Label generation
+      label_format:
+        target_prefix: "target:"
+        release_prefix: "release:"
+        suffix_template: "{major}{minor}{patch}{increment}"
+        # Generates: target:26001, target:26002, etc.
+      
+      # Deadlines (single points in time)
+      deadlines:
+        - name: "Design Approvals Requested"
+          description: "Date by which Design Approval Request labels must be added for features targeted for the release"
+          relative_to: "ga_date"
+          offset: "-55 days"
+          
+        - name: "Feature Complete"
+          description: "Date by which code and tests are expected to be complete"
+          relative_to: "ga_date"
+          offset: "-27 days"
+          
+        - name: "All Focal Approvals Due"
+          relative_to: "ga_date"
+          offset: "-18 days"
+          
+        - name: "GM"
+          description: "Date that GM build is selected"
+          relative_to: "ga_date"
+          offset: "-14 days"
+
+    - name: "Liberty Beta Release"
+      product: "Open Liberty beta"
+      
+      # Naming configuration
+      naming:
+        strategy: "semantic_version"
+        template: "{major}.{minor}.{patch}.{increment}-beta"
+        increment_step: 1
+        # Note: base_version and start_increment are set in schedules
+      
+      # Label generation
+      label_format:
+        target_prefix: "target:"
+        release_prefix: "release:"
+        suffix_template: "{major}{minor}{patch}{increment}-beta"
+        # Generates: target:26001-beta, target:26002-beta, etc.
+      
+      # Deadlines (single points in time)
+      deadlines:
+        - name: "Design Approvals Requested"
+          description: "Date by which Design Approval Request labels must be added for features targeted for the release"
+          relative_to: "ga_date"
+          offset: "-55 days"
+          
+        - name: "Feature Complete"
+          description: "Date by which code and tests are expected to be complete"
+          relative_to: "ga_date"
+          offset: "-27 days"
+          
+        - name: "All Focal Approvals Due"
+          relative_to: "ga_date"
+          offset: "-18 days"
+          
+        - name: "GM"
+          description: "Date that GM build is selected"
+          relative_to: "ga_date"
+          offset: "-14 days"
+  
+  # Define release schedules using prototypes
+  schedules:
+    - name: "2026 Liberty Releases"
+      prototype: "Liberty Release"
+      seed_date: "2026-01-27"  # First GA date of the year
+      cadence: "4 weeks"
+      occurrences: 12  # 12 releases in 2026
+      
+      # Naming override for 2026
+      naming_override:
+        base_version: "26.0.0"
+        start_increment: 1  # GA: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+      
+    - name: "2026 Liberty Beta Releases"
+      prototype: "Liberty Beta Release"
+      seed_date: "2026-01-27"  # First GA date of the year
+      cadence: "4 weeks"
+      occurrences: 12  # 12 releases in 2026
+      
+      # Naming override for 2026
+      naming_override:
+        base_version: "26.0.0"
+        start_increment: 2  # Beta: 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 (n+1 of GA)
+      
+    - name: "2027 Liberty Releases"
+      prototype: "Liberty Release"
+      seed_date: "2027-01-26"
+      cadence: "4 weeks"
+      occurrences: 12
+      
+      # Naming override for 2027
+      naming_override:
+        base_version: "27.0.0"
+        start_increment: 1
+
+# ============================================================================
+# RELEASE READINESS
+# ============================================================================
+release_readiness:
+  # Enable/disable release readiness tracking
+  enabled: true
+  
+  approval_processes:
+    - name: "Design Approval"
+      detection:
+        trigger_labels:
+          - "Design Approval Request"
+          - "Design Approved"      
+    - name: "No Design Approval"
+      detection:
+        trigger_labels:
+          - "No Design Approval Request"
+          - "No Design Approved"
+
+  # Define checkpoints with label patterns and relative deadlines
+  checkpoints:
+    # Design Approval Process checkpoints
+    - name: "Design Socialized"
+      description: "Design presented to team and feedback collected"
+      label: "Design Socialized"
+      required_for_processes: ["Design Approval"]
+      relative_to: "ga_date"
+      offset: "-55 days"
+
+    - name: "Design Approval Requested"
+      description: "Formal design approval requested from Chief Architect"
+      label: "Design Approval Request"
+      required_for_processes: ["Design Approval"]
+      relative_to: "ga_date"
+      offset: "-55 days"
+      depends_on:
+        - checkpoint: "Design Socialized"
+          type: "blocking"
+
+    - name: "Design Approved"
+      description: "Design approved by Chief Architect"
+      label: "Design Approved"
+      required_for_processes: ["Design Approval"]
+      relative_to: "ga_date"
+      offset: "-27 days"
+      depends_on:
+        - checkpoint: "Design Approval Requested"
+          type: "blocking"
+
+    # No Design Approval Process checkpoints
+    - name: "No Design Approval Requested"
+      description: "Formal No Design Approval requested from Chief Architect"
+      label: "No Design Approval Request"
+      required_for_processes: ["No Design Approval"]
+      relative_to: "ga_date"
+      offset: "-55 days"
+
+    - name: "No Design Approved"
+      description: "No design approved by Chief Architect"
+      label: "No Design Approved"
+      required_for_processes: ["No Design Approval"]
+      relative_to: "ga_date"
+      offset: "-27 days"
+      depends_on:
+        - checkpoint: "No Design Approval Requested"
+          type: "blocking"
+
+    # Common checkpoints
+    - name: "Ready for GA"
+      description: "Feature marked ready for general availability"
+      label: "target:ga"
+      relative_to: "ga_date"
+      offset: "-27 days"
+  
+  # Define approval gates with label prefixes
+  approvals:
+    - name: "API/Externals"
+      label_prefix: "focalApproved:externals"
+      required_for_processes: ["Design Approval", "No Design Approval"]
+      description: "Externals have been reviewed or N/A"
+      
+    - name: "Demo"
+      label_prefix: "focalApproved:demo"
+      required_for_processes: ["Design Approval", "No Design Approval"]
+      description: "Demo is scheduled for an upcoming EOI or N/A"
+      
+    - name: "FAT"
+      label_prefix: "focalApproved:fat"
+      required_for_processes: ["Design Approval", "No Design Approval"]
+      description: "All Tests complete and running successfully in SOE or N/A"
+      
+    - name: "ID"
+      label_prefix: "focalApproved:id"
+      required_for_processes: ["Design Approval"]
+      description: "Documentation is complete or N/A"
+      
+    - name: "InstantOn"
+      label_prefix: "focalApproved:instantOn"
+      required_for_processes: ["Design Approval"]
+      description: "InstantOn capable or N/A"
+      
+    - name: "Performance"
+      label_prefix: "focalApproved:performance"
+      required_for_processes: ["Design Approval"]
+      description: "Performance testing is complete or N/A"
+      
+    - name: "Serviceability"
+      label_prefix: "focalApproved:serviceability"
+      required_for_processes: ["Design Approval"]
+      description: "Serviceability has been addressed or N/A"
+            
+    - name: "STE"
+      label_prefix: "focalApproved:ste"
+      required_for_processes: ["Design Approval"]
+      description: "Skills Transfer Education chart deck is complete or N/A"
+
+    - name: "SVT"
+      label_prefix: "focalApproved:svt"
+      required_for_processes: ["Design Approval"]
+      description: "System Verification Test is complete or N/A"
+
+  # Define which milestone label indicates a GA release
+  ga_milestone_pattern: "^target:\\d\\d00\\d(\\d)?$"  # Matches target:YY00MM format
+  
+  # Optional: Custom risk thresholds
+  risk_thresholds:
+    high_risk_days: 7      # < 7 days until deadline = high risk
+    medium_risk_days: 14   # < 14 days until deadline = medium risk
+    # Otherwise = low risk
+
+# ============================================================================
+# SYNC - Opt-in GitHub API features
+# ============================================================================
+# These flags enable additional GitHub API calls per issue on every sync.
+# Each one consumes extra requests against the GitHub rate limit (5,000/hour
+# for authenticated users) so they are off by default.
+#
+# Enable per-repository by setting the relevant flag to true here.
+sync:
+  # Fetch full comment bodies for every issue (GET /issues/{n}/comments).
+  # Adds one API call per issue per sync. Off by default.
+  # When disabled, comment_count is still populated at zero extra cost.
+  comments: false
+
+  # Fetch GitHub Projects V2 field values for every issue (one GraphQL call per issue).
+  # Pulls project name, status column, and any custom fields set on the project board.
+  # Adds one API call per issue per sync. Off by default.
+  projects_v2: true
+
+# Made with Bob
